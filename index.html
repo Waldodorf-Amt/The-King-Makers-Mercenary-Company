@@ -4,36 +4,36 @@
   let selectedIds = [];
 
   function loadDashboard() {
-    const DATA_URL = "https://script.google.com/macros/s/AKfycbyf3Gw8T6R6now0aChoJpIEJhgmt5Sa_XX-qqsfOeHu4vgpUGuS4J52-j4QPD7Fqvgm/exec?mode=company-dashboard";
+  const DATA_URL = "https://script.google.com/macros/s/AKfycbwAjN9FktgZnYQuekiAtlhhTq2JfQHJ8-DbWFKsvtDm_7SSkWiIwl9ZaigT5kGJAEaM/exec?mode=company-dashboard";
 
-    const panel = document.getElementById('selectedPlayerPanel');
-    const list = document.getElementById('memberList');
-    panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
-    list.innerHTML = '';
+  const panel = document.getElementById('selectedPlayerPanel');
+  const list = document.getElementById('memberList');
+  panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
+  list.innerHTML = '';
 
-    fetch(DATA_URL)
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
-        }
-        return response.json();
-      })
-      .then(function(payload) {
-        allRows = Array.isArray(payload.rows) ? payload.rows : [];
-        if (!allRows.length) {
-          panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
-          return;
-        }
-        if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
-          selectedIds = [String(allRows[0].playerId)];
-        }
-        applyFiltersAndRender();
-      })
-      .catch(function(err) {
-        panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
-        list.innerHTML = '';
-      });
-  }
+  fetch(DATA_URL)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+      return response.json();
+    })
+    .then(function(payload) {
+      allRows = Array.isArray(payload.rows) ? payload.rows : [];
+      if (!allRows.length) {
+        panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
+        return;
+      }
+      if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
+        selectedIds = [String(allRows[0].playerId)];
+      }
+      applyFiltersAndRender();
+    })
+    .catch(function(err) {
+      panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
+      list.innerHTML = '';
+    });
+}
 
   function applyFiltersAndRender() {
     const search = (document.getElementById('searchBox').value || '').trim().toLowerCase();
