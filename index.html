@@ -238,8 +238,8 @@
     let filteredRows = [];
     let selectedIds = [];
 
-    function loadDashboard() {
-  const DATA_URL = "https://script.google.com/macros/s/AKfycbwernb8ZS356_Rp1nT67j_kTZE_mtE5zg6b6-0HAdBBLidPxSrkJ9O5-f74CgUyxrU/exec?mode=ebonmarch-dashboard";
+ function loadDashboard() {
+  const DATA_URL = "https://script.google.com/macros/s/AKfycbwernb8ZS356_Rp1nT67j_kTZE_mtE5zg6b6-0HAdBBLidPxSrkJ9O5-f74CgUyxrU/exec?mode=company-dashboard";
 
   const panel = document.getElementById('selectedPlayerPanel');
   const list = document.getElementById('memberList');
@@ -255,7 +255,8 @@
       return response.json();
     })
     .then(function(payload) {
-      allRows = payload.rows || [];
+      allRows = Array.isArray(payload.rows) ? payload.rows : [];
+
       if (!allRows.length) {
         panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
         return;
@@ -270,6 +271,7 @@
     .catch(function(err) {
       panel.innerHTML =
         '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
+      list.innerHTML = '';
     });
 }
     function applyFiltersAndRender() {
