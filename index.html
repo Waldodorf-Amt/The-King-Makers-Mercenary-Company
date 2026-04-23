@@ -239,29 +239,39 @@
     let selectedIds = [];
 
     function loadDashboard() {
-      const panel = document.getElementById('selectedPlayerPanel');
-      const list = document.getElementById('memberList');
-      panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
-      list.innerHTML = '';
+  const DATA_URL = "https://script.google.com/macros/s/AKfycbwernb8ZS356_Rp1nT67j_kTZE_mtE5zg6b6-0HAdBBLidPxSrkJ9O5-f74CgUyxrU/exec?mode=ebonmarch-dashboard";
 
-      google.script.run
-        .withSuccessHandler(function(data) {
-          allRows = Array.isArray(data) ? data : [];
-          if (!allRows.length) {
-            panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
-            return;
-          }
-          if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
-            selectedIds = [String(allRows[0].playerId)];
-          }
-          applyFiltersAndRender();
-        })
-        .withFailureHandler(function(err) {
-          panel.innerHTML = '<div class="error">' + escapeHtml((err && err.message) ? err.message : String(err)) + '</div>';
-        })
-        .getCompanyDashboardData();
-    }
+  const panel = document.getElementById('selectedPlayerPanel');
+  const list = document.getElementById('memberList');
 
+  panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
+  list.innerHTML = '';
+
+  fetch(DATA_URL)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+      return response.json();
+    })
+    .then(function(payload) {
+      allRows = payload.rows || [];
+      if (!allRows.length) {
+        panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
+        return;
+      }
+
+      if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
+        selectedIds = [String(allRows[0].playerId)];
+      }
+
+      applyFiltersAndRender();
+    })
+    .catch(function(err) {
+      panel.innerHTML =
+        '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
+    });
+}
     function applyFiltersAndRender() {
       const search = (document.getElementById('searchBox').value || '').trim().toLowerCase();
       const sectionFilter = document.getElementById('sectionFilter').value || '';
