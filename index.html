@@ -5,11 +5,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Amtgard Company Dashboard | King Makers Tracker</title>
-  <meta name="description" content="Track Amtgard player stats, awards, attendance, and company rosters for the King Makers mercenary company.">
-  <meta name="keywords" content="Amtgard tracker, Amtgard awards, Amtgard ORK stats, Amtgard roster, King Makers, mercenary company">
+  <meta name="description" content="Track Amtgard player stats, awards, attendance, ORK profiles, paragons, masterhoods, capes, recruits, and company rosters for the King Makers Mercenary Company.">
+  <meta name="keywords" content="Amtgard tracker, Amtgard awards, Amtgard ORK stats, Amtgard roster, King Makers, King Makers Mercenary Company, Amtgard player stats, Amtgard paragons, Amtgard masterhoods, Rising Winds Amtgard">
   <meta name="robots" content="index, follow">
   <meta name="google-site-verification" content="LShEauV_wf10qpmfqSHXECgjLzpm7Ud4KKa3QDgwgq0" />
-  <meta name="google-site-verification" content="NBmAS15iLi4QCJKqLCgW6nQKmja_KYKERm8IOphJ_zs" />
 
   <style>
     :root{
@@ -76,6 +75,23 @@
       font-size: 14px;
       font-weight: 700;
       margin-top: 6px;
+    }
+
+    .seo-intro {
+      color: #fff5bf;
+      font-size: 14px;
+      margin-top: 10px;
+      max-width: 950px;
+      line-height: 1.5;
+    }
+
+    .seo-hidden {
+      position: absolute;
+      left: -9999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
     }
 
     .toolbar {
@@ -228,6 +244,12 @@
       cursor: pointer;
     }
 
+    .member-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      transition: all 0.15s ease;
+    }
+
     .member-card.selected {
       border-color: var(--gold);
       box-shadow: inset 0 0 0 2px rgba(255,215,0,0.25);
@@ -292,6 +314,19 @@
 
     .error { color: #ffd6d6; }
 
+    .footer-seo {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 30px auto 0;
+      padding: 16px 24px 28px;
+      text-align: center;
+      font-size: 13px;
+      color: #e6d8ff;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+
     a {
       color: var(--purple);
       font-weight: 700;
@@ -337,14 +372,30 @@
     }
   </style>
 </head>
+
 <body>
-  <h1 style="display:none;">Amtgard Player Dashboard Tracker for Awards, Attendance, and Company Stats</h1>
+  <noscript>
+    <div style="padding:20px; color:white; background:#2E0854;">
+      The King Makers Mercenary Company Dashboard tracks Amtgard player statistics, awards, ORK profiles, attendance, paragons, and masterhoods across multiple kingdoms. This site requires JavaScript to load the full interactive dashboard.
+    </div>
+  </noscript>
+
+  <h1 style="display:none;">Amtgard Player Dashboard Tracker for Awards, Attendance, ORK Stats, Paragons, Masterhoods, Capes, Recruits, and Company Rosters</h1>
+
+  <div class="seo-hidden">
+    Amtgard King Makers Mercenary Company roster tracker. This site tracks Amtgard awards, Amtgard ORK player profiles, player statistics, attendance records, capes, recruits, paragons, masterhoods, Order of the Warrior, Order of the Crown, Order of the Dragon, Order of the Owl, Order of the Rose, Order of the Smith, Order of the Lion, Order of the Gryphon, Order of the Jovius, and Order of the Mask. This dashboard includes Rising Winds Amtgard players and members from multiple parks and kingdoms.
+  </div>
+
   <div class="bg-phoenix"></div>
 
   <div class="page">
     <div class="header">
       <div class="header-title">The King Makers Mercenary Company Dashboard</div>
       <div class="header-sub">Amtgard Fighting Company</div>
+
+      <div class="seo-intro">
+        The King Makers Mercenary Company Dashboard is an Amtgard player tracker displaying awards, ORK statistics, attendance records, paragons, and masterhood progression. This roster includes active capes, recruits, and inactive members across Rising Winds and multiple kingdoms. Use this dashboard to explore Amtgard player performance and company standings.
+      </div>
     </div>
 
     <div class="toolbar">
@@ -373,6 +424,10 @@
     </div>
   </div>
 
+  <div class="footer-seo">
+    Amtgard King Makers Mercenary Company roster tracker featuring player statistics, awards, ORK profiles, attendance records, paragons, masterhood progress, capes, recruits, and company standings. Serving Rising Winds and beyond.
+  </div>
+
   <script>
     let allRows = [];
     let filteredRows = [];
@@ -386,7 +441,7 @@
 
       if (!panel || !list) return;
 
-      panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
+      panel.innerHTML = '<div class="loading">Loading King Makers data...</div>';
       list.innerHTML = '';
 
       fetch(DATA_URL)
