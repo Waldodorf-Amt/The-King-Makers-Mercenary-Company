@@ -1,307 +1,702 @@
-<script>
-  let allRows = [];
-  let filteredRows = [];
-  let selectedIds = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amtgard Company Dashboard | King Makers Tracker</title>
+  <meta name="description" content="Track Amtgard player stats, awards, attendance, and company rosters for the King Makers mercenary company.">
+  <meta name="keywords" content="Amtgard tracker, Amtgard awards, Amtgard ORK stats, Amtgard roster, King Makers, mercenary company">
+  <meta name="robots" content="index, follow">
+  <meta name="google-site-verification" content="LShEauV_wf10qpmfqSHXECgjLzpm7Ud4KKa3QDgwgq0" />
 
-  function loadDashboard() {
-  const DATA_URL = "https://script.google.com/macros/s/AKfycbwAjN9FktgZnYQuekiAtlhhTq2JfQHJ8-DbWFKsvtDm_7SSkWiIwl9ZaigT5kGJAEaM/exec?mode=company-dashboard";
+  <style>
+    :root{
+      --bg:#2E0854;
+      --bg-dark:#240542;
+      --gold:#FFD700;
+      --gold-soft:#d3bb6f;
+      --purple:#4B0082;
+      --purple-soft:#5f1795;
+      --white:#f4f1f8;
+      --card:#ece9f0;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --good:#d3bb6f;
+      --mid:#dccca4;
+      --low:#d9c2c8;
+      --zero:#d8d6de;
+    }
 
-  const panel = document.getElementById('selectedPlayerPanel');
-  const list = document.getElementById('memberList');
-  panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
-  list.innerHTML = '';
+    * { box-sizing: border-box; }
 
-  fetch(DATA_URL)
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error("HTTP " + response.status);
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .bg-phoenix {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.10;
+      background:
+        radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 45%),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      margin-bottom: 18px;
+    }
+
+    .header-title {
+      color: var(--gold);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .header-sub {
+      color: #fff5bf;
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr auto auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .toolbar input,
+    .toolbar select {
+      width: 100%;
+      border: 2px solid var(--gold-soft);
+      background: #ffffff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .toolbar button {
+      border: none;
+      border-radius: 12px;
+      background: var(--gold);
+      color: var(--bg);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 12px 16px;
+      cursor: pointer;
+    }
+
+    .toolbar button:hover {
+      filter: brightness(0.97);
+    }
+
+    .player-panel {
+      background: rgba(244,241,248,0.96);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+      min-height: 90px;
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .player-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .player-kingdom {
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .player-status-badge {
+      background: #d7e6f9;
+      color: #24364d;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .info-grid,
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .info-box,
+    .stat-box {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .info-box {
+      border-left: 4px solid var(--gold);
+    }
+
+    .info-title,
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .info-value,
+    .stat-value {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .stat-good { background: var(--good); }
+    .stat-mid { background: var(--mid); }
+    .stat-low { background: var(--low); }
+    .stat-zero { background: var(--zero); }
+
+    .master-crown {
+      color: var(--gold);
+      font-size: 18px;
+      margin-left: 6px;
+    }
+
+    .members-list-wrap {
+      margin-top: 12px;
+    }
+
+    .members-title {
+      background: var(--purple);
+      color: var(--gold);
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+    }
+
+    .member-list {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .member-card {
+      width: 100%;
+      text-align: left;
+      border: 2px solid rgba(255,215,0,0.25);
+      border-left: 6px solid var(--purple);
+      background: rgba(244,241,248,0.96);
+      border-radius: 16px;
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    .member-card.selected {
+      border-color: var(--gold);
+      box-shadow: inset 0 0 0 2px rgba(255,215,0,0.25);
+      background: #f0eee4;
+    }
+
+    .member-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      padding-right: 22px;
+    }
+
+    .member-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .member-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .member-tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag-cape {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    .tag-recruit {
+      background: var(--purple);
+      color: var(--gold);
+    }
+
+    .member-crown {
+      color: var(--gold);
+      font-size: 16px;
+      margin-left: 6px;
+    }
+
+    .loading,
+    .empty,
+    .error {
+      text-align: center;
+      padding: 30px 12px;
+      font-size: 16px;
+      color: white;
+    }
+
+    .error { color: #ffd6d6; }
+
+    a {
+      color: var(--purple);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    @media (max-width: 1180px) {
+      .member-list {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
-      return response.json();
-    })
-    .then(function(payload) {
-      allRows = Array.isArray(payload.rows) ? payload.rows : [];
-      if (!allRows.length) {
-        panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
+    }
+
+    @media (max-width: 980px) {
+      .info-grid,
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+      .member-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .info-grid,
+      .stats-grid,
+      .toolbar,
+      .member-list {
+        grid-template-columns: 1fr;
+      }
+      .player-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-title {
+        font-size: 22px;
+      }
+      .page {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1 style="display:none;">Amtgard Player Dashboard Tracker for Awards, Attendance, and Company Stats</h1>
+  <div class="bg-phoenix"></div>
+
+  <div class="page">
+    <div class="header">
+      <div class="header-title">The King Makers Mercenary Company Dashboard</div>
+      <div class="header-sub">Amtgard Fighting Company</div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Search by player, park, kingdom">
+      <select id="sectionFilter">
+        <option value="">All Sections</option>
+        <option value="Active Capes">Active Capes</option>
+        <option value="Active Recruits">Active Recruits</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+      <select id="sortBy">
+        <option value="default">Sort: Default</option>
+        <option value="awards">Sort: Total Awards</option>
+        <option value="signins">Sort: Sign-Ins</option>
+        <option value="name">Sort: Name</option>
+      </select>
+      <button type="button" onclick="loadDashboard()">Refresh</button>
+      <button type="button" onclick="clearSelected()">Clear Selected</button>
+    </div>
+
+    <div id="selectedPlayerPanel" class="player-panel"></div>
+
+    <div class="members-list-wrap">
+      <div class="members-title">Members</div>
+      <div id="memberList" class="member-list"></div>
+    </div>
+  </div>
+
+  <script>
+    let allRows = [];
+    let filteredRows = [];
+    let selectedIds = [];
+
+    function loadDashboard() {
+      const DATA_URL = "https://script.google.com/macros/s/AKfycbwAjN9FktgZnYQuekiAtlhhTq2JfQHJ8-DbWFKsvtDm_7SSkWiIwl9ZaigT5kGJAEaM/exec?mode=company-dashboard";
+
+      const panel = document.getElementById('selectedPlayerPanel');
+      const list = document.getElementById('memberList');
+
+      if (!panel || !list) return;
+
+      panel.innerHTML = '<div class="loading">Loading dashboard...</div>';
+      list.innerHTML = '';
+
+      fetch(DATA_URL)
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        })
+        .then(function(payload) {
+          allRows = Array.isArray(payload.rows) ? payload.rows : [];
+          if (!allRows.length) {
+            panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
+            return;
+          }
+          if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
+            selectedIds = [String(allRows[0].playerId)];
+          }
+          applyFiltersAndRender();
+        })
+        .catch(function(err) {
+          panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
+          list.innerHTML = '';
+        });
+    }
+
+    function applyFiltersAndRender() {
+      const searchEl = document.getElementById('searchBox');
+      const sectionEl = document.getElementById('sectionFilter');
+      const sortEl = document.getElementById('sortBy');
+
+      const search = (searchEl && searchEl.value || '').trim().toLowerCase();
+      const sectionFilter = sectionEl && sectionEl.value || '';
+      const sortBy = sortEl && sortEl.value || 'default';
+
+      filteredRows = allRows.slice();
+
+      if (search) {
+        filteredRows = filteredRows.filter(r =>
+          [r.player, r.companyStatus, r.park, r.kingdom, r.paragons, r.masterhoods]
+            .join(' ')
+            .toLowerCase()
+            .includes(search)
+        );
+      }
+
+      if (sectionFilter) {
+        filteredRows = filteredRows.filter(r => r.section === sectionFilter);
+      }
+
+      if (sortBy === 'awards') {
+        filteredRows.sort((a, b) => Number(b.totalAwards || 0) - Number(a.totalAwards || 0));
+      } else if (sortBy === 'signins') {
+        filteredRows.sort((a, b) => Number(b.signIns || 0) - Number(a.signIns || 0));
+      } else if (sortBy === 'name') {
+        filteredRows.sort((a, b) => String(a.player || '').localeCompare(String(b.player || '')));
+      } else {
+        const sectionOrder = { "Active Capes": 1, "Active Recruits": 2, "Inactive": 3 };
+        filteredRows.sort((a, b) => {
+          const sa = sectionOrder[a.section] || 99;
+          const sb = sectionOrder[b.section] || 99;
+          if (sa !== sb) return sa - sb;
+          if (Number(b.totalAwards || 0) !== Number(a.totalAwards || 0)) {
+            return Number(b.totalAwards || 0) - Number(a.totalAwards || 0);
+          }
+          if (Number(b.signIns || 0) !== Number(a.signIns || 0)) {
+            return Number(b.signIns || 0) - Number(a.signIns || 0);
+          }
+          return String(a.player || '').localeCompare(String(b.player || ''));
+        });
+      }
+
+      selectedIds = selectedIds.filter(id =>
+        filteredRows.some(r => String(r.playerId) === String(id))
+      );
+
+      renderSelectedPanel();
+      renderMemberList(filteredRows);
+    }
+
+    function renderSelectedPanel() {
+      const el = document.getElementById('selectedPlayerPanel');
+      const selectedRows = getSelectedRows();
+
+      if (!el) return;
+
+      if (!selectedRows.length) {
+        el.innerHTML = '<div class="empty">No player selected.</div>';
         return;
       }
-      if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
-        selectedIds = [String(allRows[0].playerId)];
+
+      if (selectedRows.length === 1) {
+        renderSinglePlayer(el, selectedRows[0]);
+        return;
       }
-      applyFiltersAndRender();
-    })
-    .catch(function(err) {
-      panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
-      list.innerHTML = '';
-    });
-}
 
-  function applyFiltersAndRender() {
-    const search = (document.getElementById('searchBox').value || '').trim().toLowerCase();
-    const sectionFilter = document.getElementById('sectionFilter').value || '';
-    const sortBy = document.getElementById('sortBy').value || 'default';
-
-    filteredRows = allRows.slice();
-
-    if (search) {
-      filteredRows = filteredRows.filter(r =>
-        [r.player, r.companyStatus, r.park, r.kingdom, r.paragons, r.masterhoods]
-          .join(' ')
-          .toLowerCase()
-          .includes(search)
-      );
+      renderGroupPanel(el, selectedRows);
     }
 
-    if (sectionFilter) {
-      filteredRows = filteredRows.filter(r => r.section === sectionFilter);
-    }
-
-    if (sortBy === 'awards') {
-      filteredRows.sort((a, b) => Number(b.totalAwards || 0) - Number(a.totalAwards || 0));
-    } else if (sortBy === 'signins') {
-      filteredRows.sort((a, b) => Number(b.signIns || 0) - Number(a.signIns || 0));
-    } else if (sortBy === 'name') {
-      filteredRows.sort((a, b) => String(a.player || '').localeCompare(String(b.player || '')));
-    } else {
-      const sectionOrder = { "Active Capes": 1, "Active Recruits": 2, "Inactive": 3 };
-      filteredRows.sort((a, b) => {
-        const sa = sectionOrder[a.section] || 99;
-        const sb = sectionOrder[b.section] || 99;
-        if (sa !== sb) return sa - sb;
-        if (Number(b.totalAwards || 0) !== Number(a.totalAwards || 0)) {
-          return Number(b.totalAwards || 0) - Number(a.totalAwards || 0);
-        }
-        if (Number(b.signIns || 0) !== Number(a.signIns || 0)) {
-          return Number(b.signIns || 0) - Number(a.signIns || 0);
-        }
-        return String(a.player || '').localeCompare(String(b.player || ''));
-      });
-    }
-
-    selectedIds = selectedIds.filter(id =>
-      filteredRows.some(r => String(r.playerId) === String(id))
-    );
-
-    renderSelectedPanel();
-    renderMemberList(filteredRows);
-  }
-
-  function renderSelectedPanel() {
-    const el = document.getElementById('selectedPlayerPanel');
-    const selectedRows = getSelectedRows();
-
-    if (!selectedRows.length) {
-      el.innerHTML = '<div class="empty">No player selected.</div>';
-      return;
-    }
-
-    if (selectedRows.length === 1) {
-      renderSinglePlayer(el, selectedRows[0]);
-      return;
-    }
-
-    renderGroupPanel(el, selectedRows);
-  }
-
-  function renderSinglePlayer(el, player) {
-    const hasMasterhood = String(player.masterhoods || '').trim() !== '';
-    const crown = hasMasterhood ? '<span class="master-crown" title="Has Masterhood">👑</span>' : '';
-    const statusBadge = String(player.section || '').startsWith('Active') ? 'Active' : 'Inactive';
-    const statCards = [
-      ['Battle', player.battle], ['Warrior', player.warrior], ['Crown', player.crown],
-      ['Dragon', player.dragon], ['Garber', player.garber], ['Owl', player.owl],
-      ['Rose', player.rose], ['Smith', player.smith], ['Lion', player.lion],
-      ['Gryphon', player.gryphon], ['Jovius', player.jovius], ['Mask', player.mask]
-    ];
-
-    el.innerHTML = `
-      <div class="player-header">
-        <div>
-          <div class="player-name">${escapeHtml(player.player || '')}</div>
-          <div class="player-kingdom">${escapeHtml(player.kingdom || '')}</div>
-        </div>
-        <div class="player-status-badge">${escapeHtml(statusBadge)}</div>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-box"><div class="info-title">Company Status</div><div class="info-value">${escapeHtml(player.companyStatus || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Section</div><div class="info-value">${escapeHtml(player.section || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Park</div><div class="info-value">${escapeHtml(player.park || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Sign-Ins</div><div class="info-value">${displayValue(player.signIns)}</div></div>
-        <div class="info-box"><div class="info-title">Paragons</div><div class="info-value">${escapeHtml(player.paragons || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Masterhoods</div><div class="info-value">${escapeHtml(player.masterhoods || '-')} ${crown}</div></div>
-        <div class="info-box"><div class="info-title">Total Awards</div><div class="info-value">${displayValue(player.totalAwards)}</div></div>
-        <div class="info-box"><div class="info-title">ORK</div><div class="info-value"><a href="${escapeAttribute(player.ork || '#')}" target="_blank">Open Profile</a></div></div>
-      </div>
-
-      <div class="stats-grid">
-        ${statCards.map(([label, value]) => `
-          <div class="stat-box ${statClass(value)}">
-            <div class="stat-label">${escapeHtml(label)}</div>
-            <div class="stat-value">${displayValue(value)}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function renderGroupPanel(el, rows) {
-    const totals = aggregateRows(rows);
-    const names = uniqueValues(rows.map(r => r.player)).join(', ');
-    const parks = uniqueValues(rows.map(r => r.park)).join(', ');
-    const kingdoms = uniqueValues(rows.map(r => r.kingdom)).join(', ');
-    const masterhoods = uniqueSplitValues(rows.map(r => r.masterhoods)).join(', ');
-    const paragons = uniqueSplitValues(rows.map(r => r.paragons)).join(', ');
-
-    const statCards = [
-      ['Battle', totals.battle], ['Warrior', totals.warrior], ['Crown', totals.crown],
-      ['Dragon', totals.dragon], ['Garber', totals.garber], ['Owl', totals.owl],
-      ['Rose', totals.rose], ['Smith', totals.smith], ['Lion', totals.lion],
-      ['Gryphon', totals.gryphon], ['Jovius', totals.jovius], ['Mask', totals.mask]
-    ];
-
-    el.innerHTML = `
-      <div class="player-header">
-        <div>
-          <div class="player-name">${rows.length} Selected Members</div>
-          <div class="player-kingdom">${escapeHtml(kingdoms || '-')}</div>
-        </div>
-        <div class="player-status-badge">Grouped</div>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-box"><div class="info-title">Players</div><div class="info-value">${escapeHtml(names || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Parks</div><div class="info-value">${escapeHtml(parks || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Paragons</div><div class="info-value">${escapeHtml(paragons || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Masterhoods</div><div class="info-value">${escapeHtml(masterhoods || '-')}</div></div>
-        <div class="info-box"><div class="info-title">Total Awards</div><div class="info-value">${displayValue(totals.totalAwards)}</div></div>
-        <div class="info-box"><div class="info-title">Total Sign-Ins</div><div class="info-value">${displayValue(totals.signIns)}</div></div>
-      </div>
-
-      <div class="stats-grid">
-        ${statCards.map(([label, value]) => `
-          <div class="stat-box ${statClass(value)}">
-            <div class="stat-label">${escapeHtml(label)}</div>
-            <div class="stat-value">${displayValue(value)}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  function renderMemberList(rows) {
-    const el = document.getElementById('memberList');
-
-    if (!rows.length) {
-      el.innerHTML = '<div class="empty">No matching members found.</div>';
-      return;
-    }
-
-    el.innerHTML = rows.map(player => {
-      const selected = selectedIds.includes(String(player.playerId));
+    function renderSinglePlayer(el, player) {
       const hasMasterhood = String(player.masterhoods || '').trim() !== '';
-      const crown = hasMasterhood ? '<span class="member-crown" title="Has Masterhood">👑</span>' : '';
-      const isCape = String(player.section || '') === 'Active Capes';
-      const isRecruit = String(player.section || '') === 'Active Recruits';
-      const tagClass = isCape ? 'tag-cape' : 'tag-recruit';
-      const tagLabel = isCape ? 'Cape' : (isRecruit ? 'Recruit' : 'Inactive');
+      const crown = hasMasterhood ? '<span class="master-crown" title="Has Masterhood">👑</span>' : '';
+      const statusBadge = String(player.section || '').startsWith('Active') ? 'Active' : 'Inactive';
+      const statCards = [
+        ['Battle', player.battle], ['Warrior', player.warrior], ['Crown', player.crown],
+        ['Dragon', player.dragon], ['Garber', player.garber], ['Owl', player.owl],
+        ['Rose', player.rose], ['Smith', player.smith], ['Lion', player.lion],
+        ['Gryphon', player.gryphon], ['Jovius', player.jovius], ['Mask', player.mask]
+      ];
 
-      return `
-        <button class="member-card ${selected ? 'selected' : ''}" onclick="togglePlayer('${escapeJs(player.playerId)}')">
-          <div class="member-top">
-            <div>
-              <div class="member-name">${escapeHtml(player.player || '')}${crown}</div>
-              <div class="member-meta">${escapeHtml(player.park || '-')} • ${escapeHtml(player.kingdom || '-')}</div>
-            </div>
-            <span class="member-tag ${tagClass}">${escapeHtml(tagLabel)}</span>
+      el.innerHTML = `
+        <div class="player-header">
+          <div>
+            <div class="player-name">${escapeHtml(player.player || '')}</div>
+            <div class="player-kingdom">${escapeHtml(player.kingdom || '')}</div>
           </div>
-        </button>
+          <div class="player-status-badge">${escapeHtml(statusBadge)}</div>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-box"><div class="info-title">Company Status</div><div class="info-value">${escapeHtml(player.companyStatus || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Section</div><div class="info-value">${escapeHtml(player.section || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Sign-Ins</div><div class="info-value">${displayValue(player.signIns)}</div></div>
+          <div class="info-box"><div class="info-title">Total Awards</div><div class="info-value">${displayValue(player.totalAwards)}</div></div>
+          <div class="info-box"><div class="info-title">Paragons</div><div class="info-value">${escapeHtml(player.paragons || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Masterhoods</div><div class="info-value">${escapeHtml(player.masterhoods || '-')} ${crown}</div></div>
+          <div class="info-box"><div class="info-title">Park</div><div class="info-value">${escapeHtml(player.park || '-')}</div></div>
+          <div class="info-box"><div class="info-title">ORK</div><div class="info-value"><a href="${escapeAttribute(player.ork || '#')}" target="_blank">Open Profile</a></div></div>
+        </div>
+
+        <div class="stats-grid">
+          ${statCards.map(([label, value]) => `
+            <div class="stat-box ${statClass(value)}">
+              <div class="stat-label">${escapeHtml(label)}</div>
+              <div class="stat-value">${displayValue(value)}</div>
+            </div>
+          `).join('')}
+        </div>
       `;
-    }).join('');
-  }
+    }
 
-  function togglePlayer(playerId) {
-    playerId = String(playerId);
-    const idx = selectedIds.indexOf(playerId);
-    if (idx >= 0) selectedIds.splice(idx, 1);
-    else selectedIds.push(playerId);
-    renderSelectedPanel();
-    renderMemberList(filteredRows);
-  }
+    function renderGroupPanel(el, rows) {
+      const totals = aggregateRows(rows);
+      const names = uniqueValues(rows.map(r => r.player)).join(', ');
+      const parks = uniqueValues(rows.map(r => r.park)).join(', ');
+      const kingdoms = uniqueValues(rows.map(r => r.kingdom)).join(', ');
+      const masterhoods = uniqueSplitValues(rows.map(r => r.masterhoods)).join(', ');
+      const paragons = uniqueSplitValues(rows.map(r => r.paragons)).join(', ');
 
-  function clearSelected() {
-    selectedIds = [];
-    renderSelectedPanel();
-    renderMemberList(filteredRows);
-  }
+      const statCards = [
+        ['Battle', totals.battle], ['Warrior', totals.warrior], ['Crown', totals.crown],
+        ['Dragon', totals.dragon], ['Garber', totals.garber], ['Owl', totals.owl],
+        ['Rose', totals.rose], ['Smith', totals.smith], ['Lion', totals.lion],
+        ['Gryphon', totals.gryphon], ['Jovius', totals.jovius], ['Mask', totals.mask]
+      ];
 
-  function getSelectedRows() {
-    return filteredRows.filter(r => selectedIds.includes(String(r.playerId)));
-  }
+      el.innerHTML = `
+        <div class="player-header">
+          <div>
+            <div class="player-name">${rows.length} Selected Members</div>
+            <div class="player-kingdom">${escapeHtml(kingdoms || '-')}</div>
+          </div>
+          <div class="player-status-badge">Grouped</div>
+        </div>
 
-  function aggregateRows(rows) {
-    const out = { battle:0, warrior:0, crown:0, dragon:0, garber:0, owl:0, rose:0, smith:0, lion:0, gryphon:0, jovius:0, mask:0, totalAwards:0, signIns:0 };
-    rows.forEach(r => {
-      out.battle += Number(r.battle || 0);
-      out.warrior += Number(r.warrior || 0);
-      out.crown += Number(r.crown || 0);
-      out.dragon += Number(r.dragon || 0);
-      out.garber += Number(r.garber || 0);
-      out.owl += Number(r.owl || 0);
-      out.rose += Number(r.rose || 0);
-      out.smith += Number(r.smith || 0);
-      out.lion += Number(r.lion || 0);
-      out.gryphon += Number(r.gryphon || 0);
-      out.jovius += Number(r.jovius || 0);
-      out.mask += Number(r.mask || 0);
-      out.totalAwards += Number(r.totalAwards || 0);
-      out.signIns += Number(r.signIns || 0);
+        <div class="info-grid">
+          <div class="info-box"><div class="info-title">Players</div><div class="info-value">${escapeHtml(names || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Parks</div><div class="info-value">${escapeHtml(parks || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Paragons</div><div class="info-value">${escapeHtml(paragons || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Masterhoods</div><div class="info-value">${escapeHtml(masterhoods || '-')}</div></div>
+          <div class="info-box"><div class="info-title">Total Awards</div><div class="info-value">${displayValue(totals.totalAwards)}</div></div>
+          <div class="info-box"><div class="info-title">Total Sign-Ins</div><div class="info-value">${displayValue(totals.signIns)}</div></div>
+        </div>
+
+        <div class="stats-grid">
+          ${statCards.map(([label, value]) => `
+            <div class="stat-box ${statClass(value)}">
+              <div class="stat-label">${escapeHtml(label)}</div>
+              <div class="stat-value">${displayValue(value)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderMemberList(rows) {
+      const el = document.getElementById('memberList');
+
+      if (!el) return;
+
+      if (!rows.length) {
+        el.innerHTML = '<div class="empty">No matching members found.</div>';
+        return;
+      }
+
+      el.innerHTML = rows.map(player => {
+        const selected = selectedIds.includes(String(player.playerId));
+        const hasMasterhood = String(player.masterhoods || '').trim() !== '';
+        const crown = hasMasterhood ? '<span class="member-crown" title="Has Masterhood">👑</span>' : '';
+        const isCape = String(player.section || '') === 'Active Capes';
+        const isRecruit = String(player.section || '') === 'Active Recruits';
+        const tagClass = isCape ? 'tag-cape' : 'tag-recruit';
+        const tagLabel = isCape ? 'Cape' : (isRecruit ? 'Recruit' : 'Inactive');
+
+        return `
+          <button class="member-card ${selected ? 'selected' : ''}" onclick="togglePlayer('${escapeJs(player.playerId)}')">
+            <div class="member-top">
+              <div>
+                <div class="member-name">${escapeHtml(player.player || '')}${crown}</div>
+                <div class="member-meta">${escapeHtml(player.park || '-')} • ${escapeHtml(player.kingdom || '-')}</div>
+                <div class="member-meta">Awards: ${displayValue(player.totalAwards)} | Sign-Ins: ${displayValue(player.signIns)}</div>
+              </div>
+              <span class="member-tag ${tagClass}">${escapeHtml(tagLabel)}</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function togglePlayer(playerId) {
+      playerId = String(playerId);
+      const idx = selectedIds.indexOf(playerId);
+      if (idx >= 0) selectedIds.splice(idx, 1);
+      else selectedIds.push(playerId);
+      renderSelectedPanel();
+      renderMemberList(filteredRows);
+    }
+
+    function clearSelected() {
+      selectedIds = [];
+      renderSelectedPanel();
+      renderMemberList(filteredRows);
+    }
+
+    function getSelectedRows() {
+      return filteredRows.filter(r => selectedIds.includes(String(r.playerId)));
+    }
+
+    function aggregateRows(rows) {
+      const out = { battle:0, warrior:0, crown:0, dragon:0, garber:0, owl:0, rose:0, smith:0, lion:0, gryphon:0, jovius:0, mask:0, totalAwards:0, signIns:0 };
+      rows.forEach(r => {
+        out.battle += Number(r.battle || 0);
+        out.warrior += Number(r.warrior || 0);
+        out.crown += Number(r.crown || 0);
+        out.dragon += Number(r.dragon || 0);
+        out.garber += Number(r.garber || 0);
+        out.owl += Number(r.owl || 0);
+        out.rose += Number(r.rose || 0);
+        out.smith += Number(r.smith || 0);
+        out.lion += Number(r.lion || 0);
+        out.gryphon += Number(r.gryphon || 0);
+        out.jovius += Number(r.jovius || 0);
+        out.mask += Number(r.mask || 0);
+        out.totalAwards += Number(r.totalAwards || 0);
+        out.signIns += Number(r.signIns || 0);
+      });
+      return out;
+    }
+
+    function uniqueValues(arr) {
+      return [...new Set(arr.map(v => String(v || '').trim()).filter(Boolean))];
+    }
+
+    function uniqueSplitValues(arr) {
+      const out = new Set();
+      arr.forEach(v => {
+        String(v || '').split(',').map(x => x.trim()).filter(Boolean).forEach(x => out.add(x));
+      });
+      return [...out];
+    }
+
+    function displayValue(value) {
+      return value === "" || value === null || value === undefined ? "0" : String(value);
+    }
+
+    function statClass(value) {
+      const n = Number(value || 0);
+      if (n >= 9) return 'stat-good';
+      if (n >= 4) return 'stat-mid';
+      if (n > 0) return 'stat-low';
+      return 'stat-zero';
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttribute(str) {
+      return String(str).replace(/"/g, '&quot;');
+    }
+
+    function escapeJs(str) {
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    window.addEventListener('load', function () {
+      loadDashboard();
+
+      const searchBox = document.getElementById('searchBox');
+      const sectionFilter = document.getElementById('sectionFilter');
+      const sortBy = document.getElementById('sortBy');
+
+      if (searchBox) searchBox.addEventListener('input', applyFiltersAndRender);
+      if (sectionFilter) sectionFilter.addEventListener('change', applyFiltersAndRender);
+      if (sortBy) sortBy.addEventListener('change', applyFiltersAndRender);
     });
-    return out;
-  }
-
-  function uniqueValues(arr) {
-    return [...new Set(arr.map(v => String(v || '').trim()).filter(Boolean))];
-  }
-
-  function uniqueSplitValues(arr) {
-    const out = new Set();
-    arr.forEach(v => {
-      String(v || '').split(',').map(x => x.trim()).filter(Boolean).forEach(x => out.add(x));
-    });
-    return [...out];
-  }
-
-  function displayValue(value) {
-    return value === "" || value === null || value === undefined ? "0" : String(value);
-  }
-
-  function statClass(value) {
-    const n = Number(value || 0);
-    if (n >= 9) return 'stat-good';
-    if (n >= 4) return 'stat-mid';
-    if (n > 0) return 'stat-low';
-    return 'stat-zero';
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  function escapeAttribute(str) {
-    return String(str).replace(/"/g, '&quot;');
-  }
-
-  function escapeJs(str) {
-    return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  }
-
-  document.getElementById('searchBox').addEventListener('input', applyFiltersAndRender);
-  document.getElementById('sectionFilter').addEventListener('change', applyFiltersAndRender);
-  document.getElementById('sortBy').addEventListener('change', applyFiltersAndRender);
-  window.addEventListener('load', loadDashboard);
-</script>
+  </script>
+</body>
+</html>
