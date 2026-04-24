@@ -13,12 +13,9 @@
   <style>
     :root{
       --bg:#2E0854;
-      --bg-dark:#240542;
       --gold:#FFD700;
       --gold-soft:#d3bb6f;
       --purple:#4B0082;
-      --purple-soft:#5f1795;
-      --white:#f4f1f8;
       --card:#ece9f0;
       --text:#1f2937;
       --muted:#6b7280;
@@ -38,17 +35,33 @@
       padding: 0;
       position: relative;
       overflow-x: hidden;
+      min-height: 100vh;
     }
 
     .bg-phoenix {
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: 0.10;
-      background:
-        radial-gradient(circle at center, rgba(255,215,0,0.08), transparent 45%),
-        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+      z-index: 50;
+      opacity: 0.48;
+      background-image:
+        radial-gradient(circle at center, rgba(255,215,0,0.16), transparent 48%),
+        linear-gradient(rgba(46,8,84,0.18), rgba(46,8,84,0.30)),
+        url("phoenix.png");
+      background-size: min(85vw, 760px) auto, cover, min(85vw, 760px) auto;
+      background-position: center, center, center;
+      background-repeat: no-repeat, no-repeat, no-repeat;
+      transform: scale(1.18);
+      transition:
+        opacity 1.4s ease,
+        transform 1.4s ease,
+        z-index 0s linear 1.4s;
+    }
+
+    .bg-phoenix.loaded {
       z-index: 0;
+      opacity: 0.12;
+      transform: scale(1);
     }
 
     .page {
@@ -59,9 +72,7 @@
       padding: 24px;
     }
 
-    .header {
-      margin-bottom: 18px;
-    }
+    .header { margin-bottom: 18px; }
 
     .header-title {
       color: var(--gold);
@@ -124,10 +135,6 @@
       cursor: pointer;
     }
 
-    .toolbar button:hover {
-      filter: brightness(0.97);
-    }
-
     .player-panel {
       background: rgba(244,241,248,0.96);
       border-radius: 16px;
@@ -182,9 +189,7 @@
       padding: 12px 14px;
     }
 
-    .info-box {
-      border-left: 4px solid var(--gold);
-    }
+    .info-box { border-left: 4px solid var(--gold); }
 
     .info-title,
     .stat-label {
@@ -211,10 +216,6 @@
       color: var(--gold);
       font-size: 18px;
       margin-left: 6px;
-    }
-
-    .members-list-wrap {
-      margin-top: 12px;
     }
 
     .members-title {
@@ -252,7 +253,7 @@
 
     .member-card.selected {
       border-color: var(--gold);
-      box-shadow: inset 0 0 0 2px rgba(255,215,0,0.25);
+      box-shadow: 0 0 12px rgba(255,215,0,0.4);
       background: #f0eee4;
     }
 
@@ -334,41 +335,29 @@
     }
 
     @media (max-width: 1180px) {
-      .member-list {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
+      .member-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
     @media (max-width: 980px) {
       .info-grid,
-      .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .toolbar {
-        grid-template-columns: 1fr 1fr;
-      }
-      .member-list {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .member-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 640px) {
       .info-grid,
       .stats-grid,
       .toolbar,
-      .member-list {
-        grid-template-columns: 1fr;
-      }
+      .member-list { grid-template-columns: 1fr; }
+
       .player-header {
         flex-direction: column;
         align-items: flex-start;
       }
-      .header-title {
-        font-size: 22px;
-      }
-      .page {
-        padding: 16px;
-      }
+
+      .header-title { font-size: 22px; }
+      .page { padding: 16px; }
     }
   </style>
 </head>
@@ -376,17 +365,17 @@
 <body>
   <noscript>
     <div style="padding:20px; color:white; background:#2E0854;">
-      The King Makers Mercenary Company Dashboard tracks Amtgard player statistics, awards, ORK profiles, attendance, paragons, and masterhoods across multiple kingdoms. This site requires JavaScript to load the full interactive dashboard.
+      The King Makers Mercenary Company Dashboard tracks Amtgard player statistics, awards, ORK profiles, attendance, paragons, and masterhoods across multiple kingdoms.
     </div>
   </noscript>
 
   <h1 style="display:none;">Amtgard Player Dashboard Tracker for Awards, Attendance, ORK Stats, Paragons, Masterhoods, Capes, Recruits, and Company Rosters</h1>
 
   <div class="seo-hidden">
-    Amtgard King Makers Mercenary Company roster tracker. This site tracks Amtgard awards, Amtgard ORK player profiles, player statistics, attendance records, capes, recruits, paragons, masterhoods, Order of the Warrior, Order of the Crown, Order of the Dragon, Order of the Owl, Order of the Rose, Order of the Smith, Order of the Lion, Order of the Gryphon, Order of the Jovius, and Order of the Mask. This dashboard includes Rising Winds Amtgard players and members from multiple parks and kingdoms.
+    This roster includes active capes, recruits, and inactive members across Rising Winds and multiple kingdoms. Use this dashboard to explore Amtgard player performance and company standings. Amtgard King Makers Mercenary Company roster tracker. This site tracks Amtgard awards, Amtgard ORK player profiles, player statistics, attendance records, capes, recruits, paragons, masterhoods, Order of the Warrior, Order of the Crown, Order of the Dragon, Order of the Owl, Order of the Rose, Order of the Smith, Order of the Lion, Order of the Gryphon, Order of the Jovius, and Order of the Mask.
   </div>
 
-  <div class="bg-phoenix"></div>
+  <div class="bg-phoenix" id="bgPhoenix"></div>
 
   <div class="page">
     <div class="header">
@@ -394,7 +383,7 @@
       <div class="header-sub">Amtgard Fighting Company</div>
 
       <div class="seo-intro">
-        The King Makers Mercenary Company Dashboard is an Amtgard player tracker displaying awards, ORK statistics, attendance records, paragons, and masterhood progression. This roster includes active capes, recruits, and inactive members across Rising Winds and multiple kingdoms. Use this dashboard to explore Amtgard player performance and company standings.
+        Amtgard player dashboard for tracking King Makers company members, awards, attendance, ORK stats, paragons, and masterhoods.
       </div>
     </div>
 
@@ -425,46 +414,66 @@
   </div>
 
   <div class="footer-seo">
-    Amtgard King Makers Mercenary Company roster tracker featuring player statistics, awards, ORK profiles, attendance records, paragons, masterhood progress, capes, recruits, and company standings. Serving Rising Winds and beyond.
+    Amtgard King Makers Mercenary Company roster tracker featuring player statistics, awards, ORK profiles, attendance records, paragons, masterhood progress, capes, recruits, and company standings.
   </div>
 
   <script>
     let allRows = [];
     let filteredRows = [];
     let selectedIds = [];
+    let isLoading = false;
+
+    function fadePhoenixToBackground() {
+      const phoenix = document.getElementById('bgPhoenix');
+      if (phoenix) phoenix.classList.add('loaded');
+    }
 
     function loadDashboard() {
+      if (isLoading) return;
+      isLoading = true;
+
       const DATA_URL = "https://script.google.com/macros/s/AKfycbwAjN9FktgZnYQuekiAtlhhTq2JfQHJ8-DbWFKsvtDm_7SSkWiIwl9ZaigT5kGJAEaM/exec?mode=company-dashboard";
 
       const panel = document.getElementById('selectedPlayerPanel');
       const list = document.getElementById('memberList');
 
-      if (!panel || !list) return;
+      if (!panel || !list) {
+        isLoading = false;
+        fadePhoenixToBackground();
+        return;
+      }
 
       panel.innerHTML = '<div class="loading">Loading King Makers data...</div>';
       list.innerHTML = '';
 
       fetch(DATA_URL)
         .then(function(response) {
-          if (!response.ok) {
-            throw new Error("HTTP " + response.status);
-          }
+          if (!response.ok) throw new Error("HTTP " + response.status);
           return response.json();
         })
         .then(function(payload) {
           allRows = Array.isArray(payload.rows) ? payload.rows : [];
+
           if (!allRows.length) {
             panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
+            isLoading = false;
+            fadePhoenixToBackground();
             return;
           }
+
           if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
             selectedIds = [String(allRows[0].playerId)];
           }
+
           applyFiltersAndRender();
+          isLoading = false;
+          fadePhoenixToBackground();
         })
         .catch(function(err) {
           panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
           list.innerHTML = '';
+          isLoading = false;
+          fadePhoenixToBackground();
         });
     }
 
@@ -504,12 +513,8 @@
           const sa = sectionOrder[a.section] || 99;
           const sb = sectionOrder[b.section] || 99;
           if (sa !== sb) return sa - sb;
-          if (Number(b.totalAwards || 0) !== Number(a.totalAwards || 0)) {
-            return Number(b.totalAwards || 0) - Number(a.totalAwards || 0);
-          }
-          if (Number(b.signIns || 0) !== Number(a.signIns || 0)) {
-            return Number(b.signIns || 0) - Number(a.signIns || 0);
-          }
+          if (Number(b.totalAwards || 0) !== Number(a.totalAwards || 0)) return Number(b.totalAwards || 0) - Number(a.totalAwards || 0);
+          if (Number(b.signIns || 0) !== Number(a.signIns || 0)) return Number(b.signIns || 0) - Number(a.signIns || 0);
           return String(a.player || '').localeCompare(String(b.player || ''));
         });
       }
@@ -668,6 +673,9 @@
       else selectedIds.push(playerId);
       renderSelectedPanel();
       renderMemberList(filteredRows);
+
+      const panel = document.getElementById('selectedPlayerPanel');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function clearSelected() {
