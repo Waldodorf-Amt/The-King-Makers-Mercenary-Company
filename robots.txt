@@ -1,1 +1,4 @@
+User-agent: *
+Allow: /
 
+Sitemap: https://waldodorf-amt.github.io/The-King-Makers-Mercenary-Company/sitemap.xml
