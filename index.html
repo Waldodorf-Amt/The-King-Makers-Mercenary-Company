@@ -429,53 +429,53 @@
     }
 
     function loadDashboard() {
-      if (isLoading) return;
-      isLoading = true;
+  if (isLoading) return;
+  isLoading = true;
 
-      const DATA_URL = "https://script.google.com/macros/s/AKfycbyDBfJzYZwHVZl3INXGX1Lb_SZZXnhADwiEnjZ8XGpzhzQ_KfFSzF8Ked1_0GDMEghH/exec?mode=company-dashboard";
+  const DATA_URL = "https://script.google.com/macros/s/AKfycbyDBfJzYZwHVZl3INXGX1Lb_SZZXnhADwiEnjZ8XGpzhzQ_KfFSzF8Ked1_0GDMEghH/exec?mode=company-dashboard&t=" + Date.now();
 
-      const panel = document.getElementById('selectedPlayerPanel');
-      const list = document.getElementById('memberList');
+  const panel = document.getElementById('selectedPlayerPanel');
+  const list = document.getElementById('memberList');
 
-      if (!panel || !list) {
+  if (!panel || !list) {
+    isLoading = false;
+    fadePhoenixToBackground();
+    return;
+  }
+
+  panel.innerHTML = '<div class="loading">Loading King Makers data...</div>';
+  list.innerHTML = '';
+
+  fetch(DATA_URL)
+    .then(function(response) {
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    })
+    .then(function(payload) {
+      allRows = Array.isArray(payload.rows) ? payload.rows : [];
+
+      if (!allRows.length) {
+        panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
         isLoading = false;
         fadePhoenixToBackground();
         return;
       }
 
-      panel.innerHTML = '<div class="loading">Loading King Makers data...</div>';
+      if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
+        selectedIds = [String(allRows[0].playerId)];
+      }
+
+      applyFiltersAndRender();
+      isLoading = false;
+      fadePhoenixToBackground();
+    })
+    .catch(function(err) {
+      panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
       list.innerHTML = '';
-
-      fetch(DATA_URL)
-        .then(function(response) {
-          if (!response.ok) throw new Error("HTTP " + response.status);
-          return response.json();
-        })
-        .then(function(payload) {
-          allRows = Array.isArray(payload.rows) ? payload.rows : [];
-
-          if (!allRows.length) {
-            panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
-            isLoading = false;
-            fadePhoenixToBackground();
-            return;
-          }
-
-          if (!selectedIds.length && allRows[0] && allRows[0].playerId) {
-            selectedIds = [String(allRows[0].playerId)];
-          }
-
-          applyFiltersAndRender();
-          isLoading = false;
-          fadePhoenixToBackground();
-        })
-        .catch(function(err) {
-          panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
-          list.innerHTML = '';
-          isLoading = false;
-          fadePhoenixToBackground();
-        });
-    }
+      isLoading = false;
+      fadePhoenixToBackground();
+    });
+}
 
     function applyFiltersAndRender() {
       const searchEl = document.getElementById('searchBox');
