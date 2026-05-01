@@ -432,32 +432,22 @@
   if (isLoading) return;
   isLoading = true;
 
-  const DATA_URL = "https://script.google.com/macros/s/AKfycbyDBfJzYZwHVZl3INXGX1Lb_SZZXnhADwiEnjZ8XGpzhzQ_KfFSzF8Ked1_0GDMEghH/exec?mode=company-dashboard&t=" + Date.now();
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDBfJzYZwHVZl3INXGX1Lb_SZZXnhADwiEnjZ8XGpzhzQ_KfFSzF8Ked1_0GDMEghH/exec";
+  const callbackName = "kingMakersDashboardCallback_" + Date.now();
 
-  const panel = document.getElementById('selectedPlayerPanel');
-  const list = document.getElementById('memberList');
-
-  if (!panel || !list) {
-    isLoading = false;
-    fadePhoenixToBackground();
-    return;
-  }
+  const panel = document.getElementById("selectedPlayerPanel");
+  const list = document.getElementById("memberList");
 
   panel.innerHTML = '<div class="loading">Loading King Makers data...</div>';
-  list.innerHTML = '';
+  list.innerHTML = "";
 
-  fetch(DATA_URL)
-    .then(function(response) {
-      if (!response.ok) throw new Error("HTTP " + response.status);
-      return response.json();
-    })
-    .then(function(payload) {
+  window[callbackName] = function(payload) {
+    try {
       allRows = Array.isArray(payload.rows) ? payload.rows : [];
 
       if (!allRows.length) {
         panel.innerHTML = '<div class="empty">No dashboard data found.</div>';
-        isLoading = false;
-        fadePhoenixToBackground();
+        list.innerHTML = "";
         return;
       }
 
@@ -466,15 +456,41 @@
       }
 
       applyFiltersAndRender();
+
+    } catch (err) {
+      panel.innerHTML = '<div class="error">Failed to process data: ' + escapeHtml(String(err)) + '</div>';
+      list.innerHTML = "";
+
+    } finally {
       isLoading = false;
       fadePhoenixToBackground();
-    })
-    .catch(function(err) {
-      panel.innerHTML = '<div class="error">Failed to load data: ' + escapeHtml(String(err)) + '</div>';
-      list.innerHTML = '';
-      isLoading = false;
-      fadePhoenixToBackground();
-    });
+
+      delete window[callbackName];
+
+      const oldScript = document.getElementById(callbackName);
+      if (oldScript) oldScript.remove();
+    }
+  };
+
+  const script = document.createElement("script");
+  script.id = callbackName;
+  script.src =
+    SCRIPT_URL +
+    "?mode=company-dashboard" +
+    "&callback=" + encodeURIComponent(callbackName) +
+    "&t=" + Date.now();
+
+  script.onerror = function() {
+    panel.innerHTML = '<div class="error">Failed to load data from Apps Script JSONP endpoint.</div>';
+    list.innerHTML = "";
+    isLoading = false;
+    fadePhoenixToBackground();
+
+    delete window[callbackName];
+    script.remove();
+  };
+
+  document.body.appendChild(script);
 }
 
     function applyFiltersAndRender() {
